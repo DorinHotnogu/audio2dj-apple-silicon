@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>KeepAlive</key>
+	<true/>
+	<key>Label</key>
+	<string>local.audio2dj.bridge</string>
+	<key>MachServices</key>
+	<dict>
+		<key>local.audio2dj.bridge</key>
+		<true/>
+	</dict>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Library/Audio2DJ/audio2-bridge</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>StandardErrorPath</key>
+	<string>/var/log/audio2dj.log</string>
+	<key>StandardOutPath</key>
+	<string>/var/log/audio2dj.log</string>
+	<key>ThrottleInterval</key>
+	<integer>5</integer>
+	<key>UserName</key>
+	<string>nobody</string>
+</dict>
+</plist>

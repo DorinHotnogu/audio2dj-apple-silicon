@@ -1,0 +1,25 @@
+#!/bin/zsh
+set -euo pipefail
+[[ "$(uname -m)" == arm64 ]] || { print 'Apple Silicon is required.' >&2; exit 1; }
+major=$(sw_vers -productVersion | cut -d. -f1)
+[[ "$major" -ge 27 ]] || { print "This build requires macOS 27 or later." >&2; exit 1; }
+account=$(stat -f '%Su' /dev/console)
+[[ "$account" != root && "$account" != loginwindow && "$account" != _mbsetupuser ]] || { print 'Log in to the Mac desktop before installing.' >&2; exit 1; }
+id "$account" >/dev/null
+install -d -o root -g wheel -m 755 /Library/Audio2DJ
+print -r -- "$account" > /Library/Audio2DJ/install-user
+chmod 600 /Library/Audio2DJ/install-user
+launchctl bootout system/local.audio2dj.bridge 2>/dev/null || true
+for attempt in {1..75}; do
+ if ! launchctl print system/local.audio2dj.bridge >/dev/null 2>&1; then break; fi
+ sleep 0.2
+done
+if launchctl print system/local.audio2dj.bridge >/dev/null 2>&1; then print 'USB service is still stopping. Please retry installation.' >&2; exit 1; fi
+backup="/Library/Audio2DJ/Backups/$(date +%Y%m%d-%H%M%S)"
+mkdir -p "$backup"
+for item in Audio2DJ Audio2DJA Audio2DJB; do
+ if [[ -d "/Library/Audio/Plug-Ins/HAL/$item.driver" ]]; then ditto "/Library/Audio/Plug-Ins/HAL/$item.driver" "$backup/$item.driver"; fi
+done
+if [[ -f /Library/Audio2DJ/audio2-bridge ]]; then cp /Library/Audio2DJ/audio2-bridge "$backup/audio2-bridge"; fi
+if [[ -d /Library/Audio/Plug-Ins/HAL/Audio2DJ.driver ]]; then mv /Library/Audio/Plug-Ins/HAL/Audio2DJ.driver "$backup/LegacyCombined.driver"; fi
+pkill -u "$(id -u "$account")" -x Audio2DJControl 2>/dev/null || true

@@ -1,0 +1,15 @@
+#!/bin/zsh
+set -euo pipefail
+account=$(cat /Library/Audio2DJ/install-user)
+userhome=$(dscl . -read "/Users/$account" NFSHomeDirectory | sed 's/^NFSHomeDirectory: //')
+[[ -d "$userhome" ]] || exit 1
+/usr/libexec/PlistBuddy -c "Set :UserName $account" /Library/LaunchDaemons/local.audio2dj.bridge.plist
+chown root:wheel /Library/LaunchDaemons/local.audio2dj.bridge.plist
+chmod 644 /Library/LaunchDaemons/local.audio2dj.bridge.plist
+touch /var/log/audio2dj.log
+chown "$account:$(id -gn "$account")" /var/log/audio2dj.log
+chmod 600 /var/log/audio2dj.log
+mkdir -p "$userhome/Library/Application Support/Audio2DJ"
+chown "$account:$(id -gn "$account")" "$userhome/Library/Application Support/Audio2DJ"
+launchctl bootstrap system /Library/LaunchDaemons/local.audio2dj.bridge.plist
+killall coreaudiod 2>/dev/null || true
